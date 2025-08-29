@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace dotnet_aes_ige.src
 {
@@ -37,6 +36,84 @@ namespace dotnet_aes_ige.src
             tag.CopyTo(result.AsSpan(iv.Length + cipherText.Length));
 
             return result;
+        }
+
+        public static byte[] DecryptWithHmac(
+            ReadOnlySpan<byte> encryptedData,
+            ReadOnlySpan<byte> encryptionKey,
+            ReadOnlySpan<byte> hmacKey)
+        {
+            if (encryptedData.Length < AesIge.BlockSize * 2 + HmacSha256Size)
+                throw new ArgumentException("Encrypted data is too short to contain IV, ciphertext, and HMAC.");
+
+            var ivSize = AesIge.BlockSize * 2;
+            var hmacSize = HmacSha256Size;
+            var cipherTextSize = encryptedData.Length - ivSize - hmacSize;
+
+            var iv = encryptedData[..ivSize];
+            var cipherText = encryptedData[ivSize..(ivSize + cipherTextSize)];
+            var receivedTag = encryptedData[(ivSize + cipherTextSize)..];
+
+            var dataToAuthenticate = encryptedData[..^hmacSize];
+            using var hmac = new HMACSHA256(hmacKey.ToArray());
+            var computedTag = hmac.ComputeHash(dataToAuthenticate.ToArray());
+
+            if (!CryptographicOperations.FixedTimeEquals(receivedTag, computedTag))
+                throw new CryptographicException("HMAC verification failed. Data may have been tampered with.");
+
+            return AesIge.DecryptIge(cipherText, encryptionKey, iv);
+        }
+
+        public static byte[] EncryptBiIgeWithHmac(
+            ReadOnlySpan<byte> plainText,
+            ReadOnlySpan<byte> encryptionKey1,
+            ReadOnlySpan<byte> encryptionKey2,
+            ReadOnlySpan<byte> hmacKey,
+            ReadOnlySpan<byte> iv)
+        {
+            var cipherText = AesBiIge.EncryptBiIge(plainText, encryptionKey1, encryptionKey2, iv);
+
+            var dataToAuthenticate = new byte[iv.Length + cipherText.Length];
+            iv.CopyTo(dataToAuthenticate);
+            cipherText.CopyTo(dataToAuthenticate.AsSpan(iv.Length));
+
+            using var hmac = new HMACSHA512(hmacKey.ToArray());
+            var tag = hmac.ComputeHash(dataToAuthenticate);
+
+            var result = new byte[iv.Length + cipherText.Length + HmacSha512Size];
+            iv.CopyTo(result);
+            cipherText.CopyTo(result.AsSpan(iv.Length));
+            tag.CopyTo(result.AsSpan(iv.Length + cipherText.Length));
+
+            return result;
+        }
+
+        public static byte[] DecryptBiIgeWithHmac(
+            ReadOnlySpan<byte> encryptedData,
+            ReadOnlySpan<byte> encryptionKey1,
+            ReadOnlySpan<byte> encryptionKey2,
+            ReadOnlySpan<byte> hmacKey)
+        {
+            if (encryptedData.Length < AesIge.BlockSize * 4 + HmacSha512Size)
+                throw new ArgumentException("Encrypted data is too short to contain IV, ciphertext, and HMAC.");
+
+            var ivSize = AesIge.BlockSize * 4;
+            var hmacSize = HmacSha512Size;
+            var cipherTextSize = encryptedData.Length - ivSize - hmacSize;
+
+            var iv = encryptedData[..ivSize];
+            var cipherText = encryptedData[ivSize..(ivSize + cipherTextSize)];
+            var receivedTag = encryptedData[(ivSize + cipherTextSize)..];
+
+            // Verify HMAC
+            var dataToAuthenticate = encryptedData[..^hmacSize];
+            using var hmac = new HMACSHA512(hmacKey.ToArray());
+            var computedTag = hmac.ComputeHash(dataToAuthenticate.ToArray());
+
+            if (!CryptographicOperations.FixedTimeEquals(receivedTag, computedTag))
+                throw new CryptographicException("HMAC verification failed. Data may have been tampered with.");
+
+            return AesBiIge.DecryptBiIge(cipherText, encryptionKey1, encryptionKey2, iv);
         }
 
         public static (byte[] EncryptionKey, byte[] HmacKey) DeriveKeys(
