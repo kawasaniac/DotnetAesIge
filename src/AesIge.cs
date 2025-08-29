@@ -130,13 +130,6 @@ namespace dotnet_aes_ige.src
             AesIgeHelper.Xor(temp, x_prev, cipherTextBlock);
         }
 
-
-        /*
-        Span<byte> temp = stackalloc byte[BlockSize];
-        AesIgeHelper.Xor(plainTextBlock, y_prev, temp);
-        encryptor.TransformBlock(temp.ToArray(), 0, BlockSize, temp.ToArray(), 0);
-        AesIgeHelper.Xor(temp, x_prev, cipherTextBlock);*/
-
         private static void DecryptIgeBlock(
             ICryptoTransform encryptor,
             ReadOnlySpan<byte> cipherTextBlock,
@@ -162,11 +155,5 @@ namespace dotnet_aes_ige.src
 
             AesIgeHelper.Xor(temp, y_prev, plainTextBlock);
         }
-        /*
-            Span<byte> temp = stackalloc byte[BlockSize];
-            AesIgeHelper.Xor(cipherTextBlock, x_prev, temp);
-            encryptor.TransformBlock(temp.ToArray(), 0, BlockSize, temp.ToArray(), 0);
-            AesIgeHelper.Xor(temp, y_prev, plainTextBlock);
-        */
     }
 }
