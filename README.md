@@ -18,7 +18,6 @@ Extension.](https://www.links.org/files/openssl-ige.pdf)
 
 Though this paper is more informal and more of an implementation note, it is still really interesting to go through, and especially more interesting to implement in reality. It provides some decisions that are super specific to OpenSSL by various reasons (and are not explained), but I still found them useful in some way and interesting to try out.
 
-
 ## Features
 
 - AES-IGE Mode (Encrypt & Decrypt)
@@ -44,6 +43,10 @@ Secure key material expansion using HKDF (SHA-256/512). Allows deriving separate
 - Constant-Time Authentication Checks
 
 Uses CryptographicOperations.FixedTimeEquals to prevent timing attacks when verifying HMAC tags.
+
+<p align="center">
+  <img src="AESIGE.png" width="75%" height="75%">
+</p>
 
 ## Honorable Mention
 
