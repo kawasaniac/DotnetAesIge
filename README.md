@@ -7,9 +7,10 @@ Although it is a less common encryption mode, IGE provides a particularly intere
 
 AES-IGE and biIGE are clever, but they have some real drawbacks. They don’t have the same strong, formal security proofs that modern modes like GCM or CTR with authentication do. They also need unusually large IVs (two blocks for IGE, four for biIGE), which can make interoperability clumsy.
 
-Error-propagation looks cool on paper, but in practice it just means you can’t recover any useful data if a single bit is flipped — which is bad for reliability.
+Error-propagation looks cool on paper, but in practice it just means you can’t recover any useful data if a single bit is flipped, which some may say is bad for reliability (quite questionable tbh).
 
 And because they don’t provide authentication by themselves, you still need to bolt on an HMAC or something similar, which makes them less convenient than today’s AEAD modes that handle both encryption and integrity in one go.
+
 ## Acknowledgements
 
 This project and the whole algorithm is based on the paper published by Ben Laurie in his work, [OpenSSL’s Implementation of Infinite Garble
