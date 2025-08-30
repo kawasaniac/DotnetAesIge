@@ -45,7 +45,7 @@ Secure key material expansion using HKDF (SHA-256/512). Allows deriving separate
 Uses CryptographicOperations.FixedTimeEquals to prevent timing attacks when verifying HMAC tags.
 
 <p align="center">
-  <img src="AESIGE.png" width="75%" height="75%">
+  <img src="AESIGE.png" width="100%" height="100%">
 </p>
 
 ## Honorable Mention
